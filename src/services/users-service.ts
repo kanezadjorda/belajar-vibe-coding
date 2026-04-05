@@ -1,7 +1,8 @@
 import { getDb } from "../db";
-import { usersTable } from "../db/schema";
+import { usersTable, sessionsTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 export const registerUser = async (name: string, email: string, password: string) => {
   const database = await getDb();
@@ -29,4 +30,36 @@ export const registerUser = async (name: string, email: string, password: string
   });
 
   return { success: true };
+};
+
+export const loginUser = async (email: string, password: string) => {
+  const database = await getDb();
+
+  // 1. Find user by email
+  const userResults = await database
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email))
+    .limit(1);
+
+  const user = userResults[0];
+
+  // 2. Verify user and password
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    throw new Error("Email atau Password salah");
+  }
+
+  // 3. Generate token
+  const token = crypto.randomUUID();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  const expiredAt = new Date(Date.now() + oneWeek);
+
+  // 4. Create session
+  await database.insert(sessionsTable).values({
+    token,
+    userId: user.id,
+    expiredAt,
+  });
+
+  return token;
 };
