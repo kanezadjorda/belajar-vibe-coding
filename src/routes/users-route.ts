@@ -39,55 +39,43 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       password: t.String()
     })
   })
-  .get("/current", async ({ headers, set }) => {
-    try {
-      const authHeader = headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-
-      const parts = authHeader.split(" ");
-      const token = parts.length > 1 ? parts[1] : null;
-
-      if (!token) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-
-      const user = await getCurrentUser(token);
-
-      return { Data: user };
-    } catch (error: any) {
-      if (error.message === "Unauthorized") {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      set.status = 500;
-      return { error: "Internal Server Error" };
-    }
-  })
-  .delete("/logout", async ({ headers, set }) => {
-    try {
-      const authHeader = headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-
-      const parts = authHeader.split(" ");
-      const token = parts.length > 1 ? parts[1] : null;
-
-      if (!token) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-
-      await logoutUser(token);
-
-      return { Data: "OK" };
-    } catch (error: any) {
-      set.status = 500;
-      return { error: "Internal Server Error" };
-    }
-  });
+  .group("", (app) =>
+    app
+      .derive(({ headers }) => {
+        const authHeader = headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return { token: null };
+        }
+        const token = authHeader.split(" ")[1] || null;
+        return { token };
+      })
+      .onBeforeHandle(({ token, set }) => {
+        if (!token) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+      })
+      .get("/current", async ({ token, set }) => {
+        try {
+          // token is guaranteed to exist because of onBeforeHandle
+          const user = await getCurrentUser(token!);
+          return { Data: user };
+        } catch (error: any) {
+          if (error.message === "Unauthorized") {
+            set.status = 401;
+            return { error: "Unauthorized" };
+          }
+          set.status = 500;
+          return { error: "Internal Server Error" };
+        }
+      })
+      .delete("/logout", async ({ token, set }) => {
+        try {
+          await logoutUser(token!);
+          return { Data: "OK" };
+        } catch (error: any) {
+          set.status = 500;
+          return { error: "Internal Server Error" };
+        }
+      })
+  );
