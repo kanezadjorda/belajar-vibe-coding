@@ -87,3 +87,13 @@ export const getCurrentUser = async (token: string) => {
 
   return currentUser;
 };
+
+export const logoutUser = async (token: string) => {
+  const database = await getDb();
+
+  await database
+    .delete(sessionsTable)
+    .where(eq(sessionsTable.token, token));
+
+  return { success: true };
+};
