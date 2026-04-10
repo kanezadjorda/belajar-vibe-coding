@@ -3,7 +3,7 @@ import { getDb } from "./db";
 import { testTable } from "./db/schema";
 import { usersRoute } from "./routes/users-route";
 
-const app = new Elysia()
+export const app = new Elysia()
   .use(usersRoute)
   .get("/", () => "Hello World from Elysia & Bun!")
   .get("/test-db", async () => {
@@ -28,8 +28,9 @@ const app = new Elysia()
         error: error.message,
       };
     }
-  })
-  .listen(3000);
+  });
+
+app.listen(3000);
 
 console.log(
   `🚀 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
