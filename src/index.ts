@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { getDb } from "./db";
 import { testTable } from "./db/schema";
 import { usersRoute } from "./routes/users-route";
@@ -24,6 +24,9 @@ export const app = new Elysia()
       tags: ["Utility"],
       summary: "Endpoint Index",
       description: "Menampilkan pesan sapaan default"
+    },
+    response: {
+      200: t.String({ description: "Pesan Sapaan" })
     }
   })
   .get("/test-db", async () => {
@@ -53,6 +56,17 @@ export const app = new Elysia()
       tags: ["Utility"],
       summary: "Test Database Connection",
       description: "Menguji koneksi database dengan melakukan operasi insert dan select sederhana"
+    },
+    response: {
+      200: t.Object({
+        success: t.Boolean(),
+        message: t.String(),
+        data: t.Optional(t.Array(t.Object({
+          id: t.Number(),
+          message: t.String(),
+          createdAt: t.Any()
+        })))
+      })
     }
   });
 
