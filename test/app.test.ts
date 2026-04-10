@@ -22,7 +22,7 @@ describe("App Utility Endpoints", () => {
 
   it("should return database connection success status", async () => {
     const response = await app.handle(new Request("http://localhost/test-db"));
-    const data = await response.json();
+    const data = await response.json() as any;
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);

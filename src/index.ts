@@ -1,11 +1,34 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { getDb } from "./db";
 import { testTable } from "./db/schema";
 import { usersRoute } from "./routes/users-route";
+import { swagger } from "@elysiajs/swagger";
 
 export const app = new Elysia()
+  .use(swagger({
+    documentation: {
+      info: {
+        title: "Belajar Vibe Coding API",
+        version: "1.0.0",
+        description: "Dokumentasi API untuk manajemen user menggunakan Bun & Elysia"
+      },
+      tags: [
+        { name: "Users", description: "Endpoint manajemen pengguna" },
+        { name: "Utility", description: "Endpoint utilitas aplikasi" }
+      ]
+    }
+  }))
   .use(usersRoute)
-  .get("/", () => "Hello World from Elysia & Bun!")
+  .get("/", () => "Hello World from Elysia & Bun!", {
+    detail: {
+      tags: ["Utility"],
+      summary: "Endpoint Index",
+      description: "Menampilkan pesan sapaan default"
+    },
+    response: {
+      200: t.String({ description: "Pesan Sapaan" })
+    }
+  })
   .get("/test-db", async () => {
     try {
       const db = await getDb();
@@ -27,6 +50,23 @@ export const app = new Elysia()
         message: "Database connection failed",
         error: error.message,
       };
+    }
+  }, {
+    detail: {
+      tags: ["Utility"],
+      summary: "Test Database Connection",
+      description: "Menguji koneksi database dengan melakukan operasi insert dan select sederhana"
+    },
+    response: {
+      200: t.Object({
+        success: t.Boolean(),
+        message: t.String(),
+        data: t.Optional(t.Array(t.Object({
+          id: t.Number(),
+          message: t.String(),
+          createdAt: t.Any()
+        })))
+      })
     }
   });
 
