@@ -4,6 +4,16 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
+/**
+ * Mendaftarkan pengguna baru ke dalam database.
+ * Melakukan pengecekan duplikasi email dan melakukan enkripsi (hashing) password sebelum disimpan.
+ * 
+ * @param name - Nama pengguna
+ * @param email - Alamat email pengguna (harus unik)
+ * @param password - Kata sandi mentah pengguna
+ * @returns {Promise<{success: boolean}>} Status keberhasilan operasi
+ * @throws Error apabila email sudah pernah digunakan
+ */
 export const registerUser = async (name: string, email: string, password: string) => {
   const database = await getDb();
 
@@ -32,6 +42,16 @@ export const registerUser = async (name: string, email: string, password: string
   return { success: true };
 };
 
+/**
+ * Melakukan proses autentikasi (login) pengguna.
+ * Memverifikasi kombinasi email dan password, lalu membuatkan dan menyimpan sesi aktif (Token/UUID) ke database.
+ * Sesi ini memiliki masa laku (kedaluwarsa) selama 1 minggu.
+ * 
+ * @param email - Alamat email pengguna terdaftar
+ * @param password - Kata sandi pengguna terdaftar
+ * @returns {Promise<string>} Token autentikasi unik (sesi)
+ * @throws Error apabila kombinasi email dan sandi tidak cocok
+ */
 export const loginUser = async (email: string, password: string) => {
   const database = await getDb();
 
@@ -64,6 +84,14 @@ export const loginUser = async (email: string, password: string) => {
   return token;
 };
 
+/**
+ * Mengambil (meng-kueri) data profil pengguna terkini berdasarkan tiket Token (Sesi).
+ * Melakukan relasi antar tabel (JOIN) dari tabel `sessions` ke tabel `users` untuk mengambil detail identitas.
+ * 
+ * @param token - String token sesi milik pengguna
+ * @returns {Promise<{id: number, email: string, createdAt: Date}>} Data riwayat pengguna
+ * @throws Error "Unauthorized" apabila sesi token tidak dikenali/tidak sah
+ */
 export const getCurrentUser = async (token: string) => {
   const database = await getDb();
 
@@ -88,6 +116,13 @@ export const getCurrentUser = async (token: string) => {
   return currentUser;
 };
 
+/**
+ * Memutus atau mengakhiri sesi aktif milik pengguna saat ini (logout).
+ * Otomatis melacak dan menghapus langsung (delete) record sesi berdasarkan acuan target token di dalam tabel.
+ * 
+ * @param token - String token sesi milik pengguna yang akan diterminalisasi
+ * @returns {Promise<{success: boolean}>} Status keberhasilan operasi penghapusan sesi
+ */
 export const logoutUser = async (token: string) => {
   const database = await getDb();
 

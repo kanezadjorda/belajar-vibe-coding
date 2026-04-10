@@ -95,7 +95,7 @@ describe("Users API Endpoints", () => {
         headers: { "Authorization": "Bearer valid-token" }
       }));
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as any;
       expect(body.Data.email).toBe("test@example.com");
     });
 
