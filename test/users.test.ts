@@ -35,7 +35,7 @@ describe("Users API Endpoints", () => {
         body: JSON.stringify({ name: "User", email: "user@example.com", password: "password" })
       }));
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ Data: "OK" });
+      expect(await res.json()).toEqual({ data: "OK" });
     });
 
     it("should fail with duplicate email", async () => {
@@ -96,7 +96,7 @@ describe("Users API Endpoints", () => {
       }));
       expect(res.status).toBe(200);
       const body = await res.json() as any;
-      expect(body.Data.email).toBe("test@example.com");
+      expect(body.data.email).toBe("test@example.com");
     });
 
     it("should fail without token", async () => {
@@ -121,7 +121,7 @@ describe("Users API Endpoints", () => {
         headers: { "Authorization": "Bearer valid-token" }
       }));
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ Data: "OK" });
+      expect(await res.json()).toEqual({ data: "OK" });
     });
   });
 });

@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { getDb } from "./db";
 import { testTable } from "./db/schema";
-import { usersRoute } from "./routes/users-route";
+import { usersPlugin } from "./routes/users-route";
 import { swagger } from "@elysiajs/swagger";
 
 export const app = new Elysia()
@@ -18,15 +18,15 @@ export const app = new Elysia()
       ]
     }
   }))
-  .use(usersRoute)
-  .get("/", () => "Hello World from Elysia & Bun!", {
+  .use(usersPlugin)
+  .get("/", () => ({ data: "Hello World from Elysia & Bun!" }), {
     detail: {
       tags: ["Utility"],
       summary: "Endpoint Index",
       description: "Menampilkan pesan sapaan default"
     },
     response: {
-      200: t.String({ description: "Pesan Sapaan" })
+      200: t.Object({ data: t.String({ default: "Hello World from Elysia & Bun!" }) })
     }
   })
   .get("/test-db", async () => {
@@ -59,18 +59,17 @@ export const app = new Elysia()
     },
     response: {
       200: t.Object({
-        success: t.Boolean(),
-        message: t.String(),
+        success: t.Boolean({ default: true }),
+        message: t.String({ default: "Database connected and query successful" }),
         data: t.Optional(t.Array(t.Object({
-          id: t.Number(),
-          message: t.String(),
-          createdAt: t.Any()
+          id: t.Number({ default: 1 }),
+          message: t.String({ default: "Hello from Drizzle & Elysia!" }),
+          createdAt: t.Any({ default: "2024-04-10T12:00:00.000Z" })
         })))
       })
     }
-  });
-
-app.listen(3000);
+  })
+  .listen(3000);
 
 console.log(
   `🚀 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
