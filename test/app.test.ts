@@ -17,7 +17,7 @@ describe("App Utility Endpoints", () => {
   it("should return Hello World from index", async () => {
     const response = await app.handle(new Request("http://localhost/"));
     expect(response.status).toBe(200);
-    expect(await response.text()).toBe("Hello World from Elysia & Bun!");
+    expect(await response.json()).toEqual({ data: "Hello World from Elysia & Bun!" });
   });
 
   it("should return database connection success status", async () => {
